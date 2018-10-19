@@ -70,7 +70,7 @@ class Book {
             // Process each result in json array, decode and convert to business
             // object
             for (i in 0 until jsonArray.length()) {
-                var bookJson: JSONObject? = null
+                var bookJson: JSONObject?
                 try {
                     bookJson = jsonArray.getJSONObject(i)
                 } catch (e: Exception) {

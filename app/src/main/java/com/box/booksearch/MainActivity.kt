@@ -2,7 +2,7 @@ package com.box.booksearch
 
 import android.os.Bundle
 import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 
@@ -15,6 +15,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import com.loopj.android.http.JsonHttpResponseHandler
 import cz.msebera.android.httpclient.Header
+import android.support.v4.view.MenuItemCompat
+import android.support.v7.widget.SearchView
+import com.box.booksearch.R.id.action_search
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         lvBooks.adapter = BookAdapter(this, ArrayList<Book>())
-        fetchBooks()
+        fetchBooks("Oscar Wilde")
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -35,6 +38,27 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        val searchItem = menu.findItem(action_search)
+        val searchView = searchItem.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                // Fetch the data remotely
+                fetchBooks(query)
+                // Reset SearchView
+                searchView.clearFocus()
+                searchView.setQuery("", false)
+                searchView.isIconified = true
+                searchItem.collapseActionView()
+                // Set activity title to search query
+                this@MainActivity.setTitle(query)
+                return true
+            }
+
+            override fun onQueryTextChange(s: String): Boolean {
+                return false
+            }
+        })
+
         return true
     }
 
@@ -48,12 +72,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchBooks() {
+    private fun fetchBooks(query: String) {
         val client = BookClient()
-        client.getBooks("oscar Wilde", object : JsonHttpResponseHandler() {
+        client.getBooks(query, object : JsonHttpResponseHandler() {
             override fun onSuccess(statusCode: Int, headers: Array<Header>, response: JSONObject?) {
                 try {
-                    var docs: JSONArray? = null
+                    var docs: JSONArray?
                     if (response != null) {
                         // Get the docs json array
                         docs = response.getJSONArray("docs")
